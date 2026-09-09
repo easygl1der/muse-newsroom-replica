@@ -98,30 +98,37 @@ export function MediaCarousel() {
           onClick={() => goTo(index + 1)}
         />
 
-        <button
-          type="button"
-          className="absolute bottom-4 left-4 inline-flex h-10 items-center gap-2 rounded-full bg-black/45 px-3 text-white backdrop-blur-sm transition-transform hover:scale-[1.03] hover:bg-black/60 active:scale-95"
-          aria-label={running ? "Pause carousel" : "Play carousel"}
-          onClick={() => setRunning((v) => !v)}
-        >
-          {running ? <Pause className="size-3.5 fill-current" /> : <Play className="size-3.5 fill-current" />}
-          <span className="text-[12px]">{running ? "Pause" : "Play"}</span>
-        </button>
-
-        <div className="absolute bottom-4 right-4 flex gap-1.5">
-          {CAROUSEL_SLIDES.map((slide, i) => (
-            <button
-              key={slide.id}
-              type="button"
-              aria-label={`Go to ${slide.label}`}
-              className={cn(
-                "h-1.5 rounded-full transition-all",
-                i === index ? "w-6 bg-white" : "w-1.5 bg-white/45 hover:bg-white/70"
-              )}
-              onClick={() => goTo(i)}
-            />
-          ))}
+        <div className="pointer-events-none absolute bottom-4 left-4 right-4 flex items-end justify-between">
+          <button
+            type="button"
+            className="pointer-events-auto inline-flex h-10 items-center gap-2 rounded-full bg-black/45 px-3 text-white backdrop-blur-sm transition-transform hover:scale-[1.03] hover:bg-black/60 active:scale-95"
+            aria-label={running ? "Pause carousel" : "Play carousel"}
+            onClick={() => setRunning((v) => !v)}
+          >
+            {running ? <Pause className="size-3.5 fill-current" /> : <Play className="size-3.5 fill-current" />}
+            <span className="text-[12px]">{running ? "Pause" : "Play"}</span>
+          </button>
+          <div className="pointer-events-auto flex items-center gap-3">
+            <p className="rounded-full bg-black/45 px-3 py-1.5 text-[12px] text-white backdrop-blur-sm">
+              {CAROUSEL_SLIDES[index].label} · {index + 1}/{CAROUSEL_SLIDES.length}
+            </p>
+            <div className="flex gap-1.5">
+              {CAROUSEL_SLIDES.map((slide, i) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  aria-label={`Go to ${slide.label}`}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all",
+                    i === index ? "w-6 bg-white" : "w-1.5 bg-white/45 hover:bg-white/70"
+                  )}
+                  onClick={() => goTo(i)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
+
       </div>
 
       {tip ? (

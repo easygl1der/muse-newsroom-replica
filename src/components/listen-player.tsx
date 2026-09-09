@@ -9,10 +9,12 @@ const SPEEDS = [0.25, 0.5, 1, 1.25, 1.5, 2] as const;
 
 export function ListenPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const [active, setActive] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -21,26 +23,38 @@ export function ListenPlayer() {
     const onTime = () => setProgress(audio.currentTime);
     const onMeta = () => setDuration(audio.duration || 0);
     const onEnd = () => setPlaying(false);
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
     audio.addEventListener("timeupdate", onTime);
     audio.addEventListener("loadedmetadata", onMeta);
     audio.addEventListener("ended", onEnd);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
     return () => {
       audio.removeEventListener("timeupdate", onTime);
       audio.removeEventListener("loadedmetadata", onMeta);
       audio.removeEventListener("ended", onEnd);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
     };
   }, []);
 
-  const toggle = async () => {
+  const toggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (playing) {
+    setActive(true);
+    setError(null);
+
+    if (!audio.paused) {
       audio.pause();
-      setPlaying(false);
       return;
     }
-    await audio.play();
+
     setPlaying(true);
+    void audio.play().catch(() => {
+      setPlaying(false);
+      setError("Audio could not start. Try again.");
+    });
   };
 
   const seekBy = (delta: number) => {
@@ -65,7 +79,7 @@ export function ListenPlayer() {
         <button
           type="button"
           onClick={toggle}
-          className="group inline-flex items-center gap-3 rounded-full py-1 pr-2 transition-colors hover:bg-[#F0F7FF]"
+          className="group inline-flex items-center gap-3 rounded-full py-1 pr-2 transition-colors hover:bg-[#F0F7FF] active:scale-[0.98]"
           aria-label={playing ? "Pause article audio" : "Listen to Article"}
         >
           <span
@@ -84,7 +98,7 @@ export function ListenPlayer() {
         <div
           className={cn(
             "flex items-center gap-1 overflow-hidden transition-all duration-300",
-            playing
+            active
               ? "max-w-[420px] opacity-100"
               : "pointer-events-none max-w-0 opacity-0"
           )}
@@ -132,7 +146,7 @@ export function ListenPlayer() {
       <div
         className={cn(
           "mt-2 h-[3px] overflow-hidden rounded-full bg-[#E4E6EB] transition-opacity",
-          playing ? "opacity-100" : "opacity-0"
+          active ? "opacity-100" : "opacity-0"
         )}
       >
         <div
@@ -140,8 +154,13 @@ export function ListenPlayer() {
           style={{ width: `${ratio * 100}%` }}
         />
       </div>
+      {error ? (
+        <p className="mt-2 text-[13px] text-[#C03221]" role="status">
+          {error}
+        </p>
+      ) : null}
 
-      <audio ref={audioRef} preload="none" src={MEDIA.audio} />
+      <audio ref={audioRef} preload="metadata" src={MEDIA.audio} />
     </div>
   );
 }

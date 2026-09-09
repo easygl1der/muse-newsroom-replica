@@ -13,16 +13,19 @@ export function HeroVideo() {
   const [duration, setDuration] = useState(0);
   const [hover, setHover] = useState(false);
 
-  const togglePlay = async () => {
+  const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
-    if (video.paused) {
-      await video.play();
-      setPlaying(true);
-    } else {
+    if (!video.paused) {
       video.pause();
-      setPlaying(false);
+      return;
     }
+    setPlaying(true);
+    void video.play().catch(() => {
+      video.muted = true;
+      setMuted(true);
+      void video.play().catch(() => setPlaying(false));
+    });
   };
 
   const toggleMute = () => {
